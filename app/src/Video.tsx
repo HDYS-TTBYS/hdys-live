@@ -1,12 +1,11 @@
 import mpegts from "mpegts.js"
 import { useRef, useEffect } from "react";
-import './Video.css';
+import './App.css';
 
 function Video() {
   const ref = useRef(null);
 
-  var url = "";
-  url = process.env.REACT_APP_LIVE_URL!
+  var url = process.env.REACT_APP_LIVE_URL!
 
   useEffect(() => {
     if (mpegts.getFeatureList().mseLivePlayback) {
@@ -22,7 +21,7 @@ function Video() {
   }, []);
 
   return (
-    <div id="wrap">
+    <div className="video-wrap">
       <video id="videoElement" controls autoPlay ref={ref} >
         Your browser is too old which doesn't support HTML5 video.
       </video>
