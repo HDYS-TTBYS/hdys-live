@@ -6,11 +6,7 @@ function Video() {
   const ref = useRef(null);
 
   var url = "";
-  if (process.env.NODE_ENV == "development") {
-    url = `http://127.0.0.1:7001/live/${process.env.REACT_APP_LIVE_KEY}.flv`
-  } else {
-    url = `https://live.tthd-app.work/${process.env.REACT_APP_LIVE_KEY}.flv`
-  }
+  url = process.env.REACT_APP_LIVE_URL!
 
   useEffect(() => {
     if (mpegts.getFeatureList().mseLivePlayback) {
