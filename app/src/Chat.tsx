@@ -1,15 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import './App.css';
-import { getDatabase, ref, push } from "firebase/database";
+import { getDatabase, ref, push, onChildAdded, onValue } from "firebase/database";
 import "./firebase";
+import _ from 'lodash'
 
+type CommentObject = {
+  id: string
+  name: string
+  comment: string
+}
+
+const db = getDatabase()
+const commentsRef = ref(db, "comment")
 
 function Chat() {
-  const [data, setData] = useState<string[]>([]);
+  const [comments, setComments] = useState<CommentObject[]>([]);
 
   const [name, setName] = useState("");
   const [comment, setComment] = useState("");
-
 
   useEffect(() => {
     if (localStorage.getItem("name")) {
@@ -19,33 +27,38 @@ function Chat() {
       setName("名無しさん")
     }
 
+    // onChildAdded(commentsRef, (data) => {
+    //   console.log(data.key, data.val().name, data.val().comment);
+    //   const newComment: CommentObject = { id: data.key!, name: data.val().name, comment: data.val().comment }
+    //   console.log(comments)
+    //   setComments([...comments, newComment])
+    // });
 
-    // ここから
-    let randomString: string[] = []
-    const appendData = () => {
-      for (let i = 0; i < Math.floor(Math.random() * (15 + 1 - 10)) + 10; i++) { //Max:25 Min:10
-        randomString.push(Math.random().toString(32).substring(2))
-      }
-      // ここの処理をAPIからの取得のコードに変更する
+    onValue(commentsRef, (snapshot) => {
+      const newComments: CommentObject[] = []
+      snapshot.forEach((childSnapshot) => {
+        const newComment: CommentObject = { id: childSnapshot.key!, name: childSnapshot.val().name, comment: childSnapshot.val().comment }
+        newComments.push(newComment)
+      })
+      setComments(newComments)
+    }, {
+      // onlyOnce: true
+    })
 
-      setData([...data, ...randomString])
-
-      setTimeout(() => {
-        appendData()
-      }, 1000);
-    }
-    appendData()
   }, []);
 
+
   useEffect(() => {
-    data.slice(-1)[0] && document.getElementById(data.slice(-1)[0])!.scrollIntoView({ behavior: "smooth" })
-  }, [data])
+    comments.slice(-1)[0] && document.getElementById(comments.slice(-1)[0].id)!.scrollIntoView({ behavior: "smooth" })
+  }, [comments])
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    // TODO
     e.preventDefault();
-    const db = getDatabase()
-    push(ref(db, "comment/"), {
+    if (name === "" || comment === "") {
+      return
+    }
+
+    push(ref(db, "comment"), {
       name: name,
       comment: comment
     })
@@ -61,7 +74,11 @@ function Chat() {
   return (
     <div className="scroll-container">
       <div className="scroll">
-        {data.map(d => <section key={d} id={d}>{d}</section >)}
+        {comments.map(c =>
+          <div key={c.id} id={c.id}>{c.name}:
+            <pre>{c.comment}</pre>
+          </div >
+        )}
       </div>
 
       <form onSubmit={handleSubmit}>
