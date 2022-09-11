@@ -7,13 +7,14 @@ services:
       - '443:443'
     restart: always
     environment:
-      DOMAINS: 'tthd-app.work -> http://node:3000, live.tthd-app.work -> http://livego:7001'
-      # STAGE: 'production' # Don't use production until staging works
       # FORCE_RENEW: 'true'
-      STAGE: local
+      DOMAINS: 'tthd-app.work -> http://node:3000, live.tthd-app.work -> http://livego:7001' # dev
+      STAGE: local # dev
+      # DOMAINS: 'tthd-app.work -> http://web:80, live.tthd-app.work -> http://livego:7001' # production
+      # STAGE: 'production' # production 
     volumes: 
       - https-portal-data:/var/lib/https-portal
-  node:
+  node: # dev
     build: 
       context: .
       dockerfile: ./Dockerfile.node.dev
@@ -23,6 +24,14 @@ services:
     restart: always
     ports:
       - "3000:3000"
+  web:
+    build: 
+      context: .
+      dockerfile: ./Dockerfile.web.prod
+    tty: true
+    restart: always
+    ports:
+      - "81:80"
   livego:
     image: gwuhaolin/livego
     tty: true

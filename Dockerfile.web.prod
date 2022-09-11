@@ -1,0 +1,17 @@
+# ベースイメージを指定
+FROM node:18-alpine3.15 as node
+
+# 本番環境では production
+ENV NODE_ENV=production
+
+# ディレクトリを移動する
+WORKDIR /app
+
+COPY ./app /.
+
+RUN yarn install && yarn build
+
+#第二段階(一段階目のコンテナの中身から静的ファイル群だけをコピーする)
+FROM nginx:1.23.1-alpine
+COPY --from=node ./build /usr/share/nginx/html
+CMD nginx -g "daemon off;"
