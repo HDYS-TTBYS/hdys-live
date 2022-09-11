@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import './App.css';
-import { getDatabase, ref, push, onChildAdded, onValue } from "firebase/database";
+import { getDatabase, ref, push, query, limitToLast, onValue } from "firebase/database";
 import "./firebase";
 import _ from 'lodash'
 
@@ -11,7 +11,7 @@ type CommentObject = {
 }
 
 const db = getDatabase()
-const commentsRef = ref(db, "comment")
+const commentsRef = query(ref(db, "comment"), limitToLast(100))
 
 function Chat() {
   const [comments, setComments] = useState<CommentObject[]>([]);
@@ -27,13 +27,6 @@ function Chat() {
       setName("名無しさん")
     }
 
-    // onChildAdded(commentsRef, (data) => {
-    //   console.log(data.key, data.val().name, data.val().comment);
-    //   const newComment: CommentObject = { id: data.key!, name: data.val().name, comment: data.val().comment }
-    //   console.log(comments)
-    //   setComments([...comments, newComment])
-    // });
-
     onValue(commentsRef, (snapshot) => {
       const newComments: CommentObject[] = []
       snapshot.forEach((childSnapshot) => {
@@ -41,9 +34,7 @@ function Chat() {
         newComments.push(newComment)
       })
       setComments(newComments)
-    }, {
-      // onlyOnce: true
-    })
+    }, {})
 
   }, []);
 
